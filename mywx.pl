@@ -21,6 +21,11 @@ $Report->setpassword('tim@gimmel.org');
 #$Report->setdirectory("/home/tim/weather.tmpl");
 if ($station) {
     $Report->getreport($station);
+      if ($Report->{error}) {
+        print "$Report->{errortext}";
+        print "Check code or try again later.\n";
+        exit;
+      }
 } else {
     $Report->getreport('kehr');
 }
