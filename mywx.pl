@@ -17,8 +17,6 @@ my $Report = Geo::WeatherNWS::new();
 
 $Report->setservername("tgftp.nws.noaa.gov");
 $Report->setusername("anonymous");
-$Report->setpassword('tim@gimmel.org');
-#$Report->setdirectory("/home/tim/weather.tmpl");
 if ($station) {
     $Report->getreport($station);
       if ($Report->{error}) {
