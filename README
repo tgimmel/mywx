@@ -1,0 +1,28 @@
+Small perl program to obtain weather data using 4 char. METAR code from NWS. If you don't enter
+a code it will default to Henderson, KY.  To change just update the variable $default and $defstation.
+
+Have fun!
+Tim
+tim@gimmel.org
+
+usage mywx.pl [-l] [-d] <station>
+      -l list weather stations
+      -d debug see extra stuff
+
+There is a scrip called stations.pl included I used to extract data from the big text
+file from NWS.  It sorta works.  Use at your own risk.    
+
+    Copyright (C) 2013  Timothy Gimmel
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>

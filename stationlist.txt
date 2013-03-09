@@ -1,103 +1,3 @@
-#!/usr/bin/perl -w
-
-use strict;
-use Geo::WeatherNWS;
-use Getopt::Std;
-
-my ($winddirtext, $nochill, $debug, $station, $default, $line);
-my ($st, $city, $code, $ctyst, %metr, $c, $defstation);
-
-$debug = 0;
-$default = 'Henderson, KY';
-$defstation = 'kehr';
-our ($opt_d, $opt_h, $opt_l);
-getopts('ldhs:');
-if ($opt_d) { $debug = 1; }
-if ($opt_h) { usage();}
-
-
-while ($line = <DATA>) {
-    $st = substr $line, 0, 2;
-    $city = substr $line, 3, 16;
-    $code = substr $line, 20, 4;
-    chomp($city);
-    $city =~ s/\s+$//g;                #remove trailing whitespace
-    $ctyst = "$city" . ", " . $st;
-    $metr{$code} = $ctyst;
-    if ($debug) { $c++; }
-}
-if ($opt_l) { liststations(%metr); }
-
-if ($debug) { print "loaded $c codes.\n"; }
-$nochill = "0";
-$station  = $ARGV[0];
-if (!$station) { print "\nNo station entered, using default location, $default\n"; }
-my $Report = Geo::WeatherNWS::new();
-
-$Report->setservername("tgftp.nws.noaa.gov");
-$Report->setusername("anonymous");
-if ($station) {
-    $Report->getreport($station);
-      if ($Report->{error}) {
-        print "$Report->{errortext}";
-        print "Check code or try again later.\n";
-        exit;
-      }
-} else {
-    $station = $defstation;
-    $Report->getreport($station);
-}
-
-if ($Report->{error})
-  {
-    print "$Report->{errortext}";
-  }
-#$winddirtext = $Report->{winddirtext};
-#if ($winddirtext eq "Calm") { $nochill = "1"; }
-
-if ($station) { print "\n"; }
-if ($debug) { print "debug: $Report->{obs}\n";
-              print "debug: Station: $station\n";
-	      print "Hash value: $metr{ (uc($station)) }\n";
-}
-#my $station_loc = $metr{$station};
-#print $metr{$station};
-
-print "================================================================\n";
-print "            Report for $metr{ uc($station) }\n";
-print "  WX report from station $Report->{code} \@$Report->{report_date} $Report->{report_time} UTC\n";
-print "================================================================\n";
-printf "Temperture:%3u degrees             Air Pressure:%2.2f Inches hg\n", $Report->{temperature_f}, $Report->{pressure_inhg};
-printf " Windspeed:%3u mph from %-9s  Guest %s mph \n", $Report->{windspeedmph}, $Report->{winddirtext}, $Report->{windgustmph};
-printf "  Dewpoint:%3u degrees             Relative humidity:%u%% \n", $Report->{dewpoint_f}, $Report->{relative_humidity};
-if ($Report->{windchill_f}) { printf " Windchill:%3u degrees", $Report->{windchill_f} } else { print "  No Windchill Report "; }
-if ($Report->{heat_index_f} and ($Report->{temperature_f} > 60)) {
-    printf "             Heat Index:%3u \n", $Report->{heat_index_f};
-    } else { print "             No Heat Index Report\n"; }
-if ($Report->{cloudcover}) {printf "Cloudcover: %s \n", $Report->{cloudcover}; }
-print "================================================================\n";
-print "Find your code at http://www.aircharterguide.com/Airports \n";
-print "================================================================\n";
-
-sub usage {
-    print "USAGE: mywx [-d] <METAR>\n";
-    print " -d debug\n";
-    print "<METAR> is 4 character metar code\n";
-}
-
-exit;
-
-sub liststations {
-    my %data = @_;
-    my ($key, $value);
-    foreach $key (sort keys %data) {
-      $value = $data{$key};
-      print "$key $value \n";
-    }
- #   }
-    
-}
-__DATA__
 AK ADAK NAS         PADK
 AK AKHIOK           PAKH
 AK AMBLER           PAFM
@@ -287,6 +187,7 @@ AK WRANGELL         PAWG
 AK YAKUTAT          PAYA
 AK ALASKAN ARTCC    PZ74
 AK ALASKAN ARTCC    PZ76
+CD  STATION         ICAO
 AL ALABASTER        KEET
 AL ALBERTVILLE MUNI K8A0
 AL ALEXANDER/RUSSEL KALX
@@ -338,6 +239,7 @@ AL DAUPHIN ISLAND   K4R9
 AL FAIRHOPE         K4R4
 AL HUNTSVILLE/MADIS KM82
 AL VIOSCA KNOLL768  KVOA
+CD  STATION         ICAO
 AR ARKADELPHIA      KM89
 AR BATESVILLE       KBVX
 AR BENTONVILLE      KH00
@@ -378,6 +280,7 @@ AR STUTTGART        KSGT
 AR TEXARKANA        KTXK
 AR WALNUT RIDGE     KARG
 AR MENA INTERMTN    KM39
+CD  STATION         ICAO
 AZ PHOENIX/SKY HRBR KPHX
 AZ TUCSON           KTUS
 AZ BUCKEYE          KBXK
@@ -434,6 +337,7 @@ AZ SAFFORD          KE74
 AZ SHOW LOW         KE03
 AZ TUBA CITY        KT03
 AZ WINDOW ROCK      KP34
+CD  STATION         ICAO
 CA ALAMEDA NAS      KNGZ
 CA ALTURAS          KAAT
 CA APPLE VALLEY     KAPV
@@ -625,6 +529,7 @@ CA SUPERIOR VALLEY  K4SU
 CA TUSTIN MCAS      KNTK
 CA VACAVILLE        KO45
 CA MARCH AFB/88D    KRIX
+CD  STATION         ICAO
 CO DENVER (DIA)     KDEN
 CO AKRON            KAKO
 CO ALAMOSA          KALS
@@ -712,6 +617,7 @@ CO WILKERSON PASS   K4BM
 CO SUNLIGHT         K5SM
 CO COTTONWOOD PASS  K7BM
 CO WRAY             K2V5
+CD  STATION         ICAO
 CT BRIDGEPORT       KBDR
 CT CHESTER          KSNC
 CT DANBURY          KDXR
@@ -724,10 +630,12 @@ CT WILLIMANTIC      KIJD
 CT WINDSOR LOCKS    KBDL
 CT MANSFIELD        K5B0
 CT PUTNAM           K5B3
+CD  STATION         ICAO
 DE DOVER AFB        KDOV
 DE DOVER/ELLENDALE  KDOX
 DE GEORGETOWN       KGED
 DE WILMINGTON       KILG
+CD  STATION         ICAO
 FL APALACHICOLA     KAAF
 FL BARTOW MUNICIPAL KBOW
 FL BOCA RATON       KBCT
@@ -836,6 +744,7 @@ FL ASTOR            K90J
 FL AVON PARK        KAGR
 FL INVERNESS        KX40
 FL HURLBERT         KQHY
+CD  STATION         ICAO
 GA ALBANY           KABY
 GA AMERICUS         KACJ
 GA PECAN (ALBANY)   KPZD
@@ -910,6 +819,7 @@ GA WAYCROSS/WARE CO KAYS
 GA WINDER/BARROW    KWDR
 GA BLAKELY EARLY C  K11J
 GA CANTON/CHEROKEE  K47A
+CD  STATION         ICAO
 HI BARKING SANDS/KA PHBK
 HI BRADSHAW AAF/HAW PHSF
 HI HANA             PHHN
@@ -940,6 +850,7 @@ HI PEARL HARBOR     PHNC
 HI WHEELER AFB/OAHU PHHI
 HI BARBERS PT NAS   PHNA
 HI MIDWAY ISLAND NA PMDY
+CD  STATION         ICAO
 IA ALGONA           KAXA
 IA AMES             KAMW
 IA ANKENY           KIKV
@@ -1005,6 +916,7 @@ IA WEBSTER CITY     KEBS
 IA LAMONI           K0Y7
 IA LAMONI           K3OI
 IA SPENCER          K3SE
+CD  STATION         ICAO
 ID ADA COUNTY/BOISE KCBX
 ID BOISE            KBOI
 ID BURLEY           KBYI
@@ -1046,6 +958,7 @@ ID REXBURG          KU11
 ID SALMON (AWRS)    K27U
 ID SAYLOR CREEK     KMI1
 ID GRANGEVILLE      KS80
+CD  STATION         ICAO
 IL ALTON/ST LOUIS R KALN
 IL BLOOMINGTON/NORM KBMI
 IL BRADFORD/VOR     KBDF
@@ -1119,6 +1032,7 @@ IL GLENVIEW NAS     KNBU
 IL LINCOLN          K3LC
 IL RANTOUL          K2I5
 IL ROCHELLE/KORITZ  K12C
+CD  STATION         ICAO
 IN ANDERSON MUNICIP KAID
 IN AUBURN DEKALB C  KGWB
 IN BLOOMINGTON      KBMG
@@ -1158,6 +1072,7 @@ IN WARSAW MUNI      KASW
 IN BATESVILLE       KHLB
 IN INDIANAPOLIS/EAG KI14
 IN SHELBYVILLE      K3SM
+CD  STATION         ICAO
 KS ALMA/TOPEKA      KTWX
 KS BURLINGTON       KUKL
 KS CHANUTE          KCNU
@@ -1227,6 +1142,7 @@ KS SCOTT CITY       KTQK
 KS SMITH CENTER     KK82
 KS ULYSSES          KULS
 KS WELLINGTON       KEGT
+CD  STATION         ICAO
 KY BOWLING GREE     KBWG
 KY COVINGTON        KCVG
 KY DANVILLE         KDVK
@@ -1261,6 +1177,7 @@ KY TOMPKINSVILLE    KTZV
 KY ELIZABETH        KEKX
 KY HENDERSON CITY   KI26
 KY PIKEVILLE (RAMOS K5I3
+CD  STATION         ICAO
 LA ABBEVILLE CC MEM KIYA
 LA ALEXANDRIA       KAEX
 LA ALEXANDRIA       KESF
@@ -1376,6 +1293,7 @@ LA MAIN PASS 140B   KMIS
 LA S TIMBALIER 301B KSTZ
 LA VERMILION 331    KVQT
 LA MISS CANYON 474  KIKT
+CD  STATION         ICAO
 MA BEDFORD          KBED
 MA BEVERLY          KBVY
 MA BOSTON           KBOS
@@ -1413,6 +1331,7 @@ MA MARSHFIELD       K3B2
 MA NEWBURYPORT      K2B2
 MA NORTH ADAMS      K2B6
 MA WORTHINGTON      KWOR
+CD  STATION         ICAO
 MD ABERDEEN/PHILLIP KAPG
 MD ABERDEEN PRV GND KQAH
 MD ANNAPOLIS/NAVAL  KNAK
@@ -1449,6 +1368,7 @@ MD FORT RITCHIE/SIT K43M
 MD OCEAN CITY       KN80
 MD WEBSTER NAVAL    KNUI
 MD WESTMINSTER      KEMI
+CD  STATION         ICAO
 ME AUBURN/LEWISTON  KLEW
 ME AUGUSTA          KAUG
 ME BANGOR           KBGR
@@ -1482,6 +1402,7 @@ ME RANGELEY         K8B0
 ME RUMFORD          KRUM
 ME SEWEL RIDGE      K9B6
 ME WISCASSET        K9B9
+CD  STATION         ICAO
 MI ADRIAN           KADG
 MI ALMA             KAMN
 MI ALPENA           KAPN
@@ -1586,6 +1507,7 @@ MI PECK             KECK
 MI SAULT STE MARIE  KY62
 MI SOUTH HAVEN      K0D1
 MI TROY/OAKLAND     K7D2
+CD  STATION         ICAO
 MN AITKIN NDB       KAIT
 MN ALBERT LEA       KAEL
 MN ALEXANDRIA       KAXN
@@ -1735,6 +1657,7 @@ MN LUVERNE          QMSM
 MN LAMBERTON        QRCM
 MN WEST CONCORD     QTMM
 MN ROCHESTER        QWLM
+CD  STATION         ICAO
 MO BOONVILLE        KVER
 MO BRANSON          KBBG
 MO BUTLER           KBUM
@@ -1792,6 +1715,7 @@ MO POPLAR BLUFF     KP02
 MO ST. CHARLES      K3SQ
 MO WEST PLAINS      KH63
 MO WARRENSBURG SKYH K9K4
+CD  STATION         ICAO
 MS ABERDEEN/AMORY   KM40
 MS BAY ST LOUIS     KHSA
 MS BILOXI/KEESLER   KBIX
@@ -1831,6 +1755,7 @@ MS VICKSBURG        KVKS
 MS YAZOO CITY       KYZO
 MS INNOVATOR OILP   KMYT
 MS WEST DELTA 27A   KDLP
+CD  STATION         ICAO
 MT BAKER            KBHK
 MT ENNIS BIG SKY    KEKS
 MT BILLINGS         KBIL
@@ -1881,6 +1806,7 @@ MT YELLOWST/BILLING KBLX
 MT BROADUS          K4BQ
 MT HAMILTON/RAVALLI KHMM
 MT MONIDA           KMQM
+CD  STATION         ICAO
 NC AHOSKIE/TRI COUN KASJ
 NC ALBEMARLE STANLY KVUJ
 NC ANDREWS          KRHP
@@ -1968,6 +1894,7 @@ NC REIDSVILLE       K78N
 NC ROCKINGHAM       K45J
 NC STUMPY POINT     K2DP
 NC WALLACE          KACZ
+CD  STATION         ICAO
 ND BEACH            K20U
 ND BISMARCK         KBIS
 ND BOWMAN MUNI      KBPP
@@ -2009,6 +1936,7 @@ ND WATFORD CITY     KS25
 ND WILLISTON        KISN
 ND ROSEGLEN         KP24
 ND WAHPETON         KBWP
+CD  STATION         ICAO
 NE AINSWORTH MUNICI KANW
 NE ALBION MUNI      KBVN
 NE ALLIANCE         KAIA
@@ -2063,6 +1991,7 @@ NE BURWELL          KBUB
 NE COZAD            KCZD
 NE MULLEN           KMHN
 NE CHAMPION         KCHM
+CD  STATION         ICAO
 NH BERLIN           KBML
 NH CONCORD          KCON
 NH JAFFREY          KAFN
@@ -2082,7 +2011,7 @@ NH NORTH CONWAY     KCWN
 NH NORTH GROTON     KNGR
 NH ROCHESTER        K6B1
 NH TAMWORTH         KTMW
-CD  STATION         ''
+CD  STATION         ICAO
 NJ ALEXANDRIA       KN85
 NJ ANDOVER          K12N
 NJ ATLANTIC CITY    KACY
@@ -2125,6 +2054,7 @@ NJ SANDY HOOK CGS   K56N
 NJ SOMERVILLE       KN52
 NJ SUSSEX           KN63
 NJ SOMERVILLE       KSJB
+CD  STATION         ICAO
 NM GALLUP           KGUP
 NM ALAMOGORDO WHITE KALM
 NM ALBUQUERQUE      KABQ
@@ -2183,6 +2113,7 @@ NM TATUM NM 2SW     XTAT
 NM DORA 2SW         XDR1
 NM NORTHFIELD 1S    XNOR
 NM HOBBS 5NW        XHO1
+CD  STATION         ICAO
 NV AUSTIN           KU31
 NV BATTLE MOUNTAIN  KB23
 NV BATTLE MTN (VOR) KBAM
@@ -2226,6 +2157,7 @@ NV INDIAN SPRINGS   KL76
 NV JACKPOT          K06U
 NV OWYHEE           KOWY
 NV TONOPAH MILITARY KTNX
+CD  STATION         ICAO
 NY ALBANY           KALB
 NY ALBANY/E. BERNE  KENX
 NY ALBANY/WFO       KALY
@@ -2296,6 +2228,7 @@ NY SLIDE MOUNTAIN   KSLD
 NY STORMVILLE       KSTM
 NY WARSAW           KWRS
 NY GRIFFISS AFB/88D KRMX
+CD  STATION         ICAO
 OH AKRON (FULTON)   KAKR
 OH AKRON            KCAK
 OH APPLETON         KAPE
@@ -2351,6 +2284,7 @@ OH LANCASTER        KI15
 OH LORAIN/ELYRIA    K22G
 OH NEWARK           K2I8
 OH RAVENA/PORTAGE   K29G
+CD  STATION         ICAO
 OK ADA              KADH
 OK ARDMORE          KADM
 OK ARDMORE/EXEC     K1F0
@@ -2414,6 +2348,7 @@ OK WOODWARD         KWWR
 OK EL RENO MUNI     KF28
 OK PAGE             KPGO
 OK SEMINOLE         KH45
+CD  STATION         ICAO
 OR PORTLAND         KPDX
 OR HILLSBORO/PORTLD KHIO
 OR ASTORIA          KAST
@@ -2471,6 +2406,7 @@ OR LAKEVIEW         K4LW
 OR PACIFIC CITY     KPFC
 OR SCAPPOOSE        K1S4
 OR TILLAMOOK        KS47
+CD  STATION         ICAO
 PA ALLENTOWN        KABE
 PA ALLENTOWN QUEEN  KXLL
 PA ALTOONA          KAOO
@@ -2529,6 +2465,7 @@ PA HAWLEY           KHAW
 PA MEADVILLE        K2G6
 PA TOBYHANNA        K7TB
 PA WILLOW GROVE NAS KNXX
+CD  STATION         ICAO
 RI BLOCK ISLAND     KBID
 RI N. KINGSTON/QUON KOQU
 RI NEWPORT          KUUU
@@ -2537,6 +2474,7 @@ RI PROVIDENCE/GREEN KPVD
 RI WESTERLY         KWST
 RI NEWPORT          K2B4
 RI WOONSOCKET       K1B6
+CD  STATION         ICAO
 SC AIKEN            KAIK
 SC ANDERSON         KAND
 SC BARNWELL         KBNL
@@ -2588,6 +2526,7 @@ SC GRNVL/DNLDSN     KXAA
 SC HILTON HEAD      K49J
 SC ROCK HILL        K29J
 SC SUMTER/POINSETT  K2PJ
+CD  STATION         ICAO
 SD ABERDEEN         KABR
 SD BELLE FOURCHE    KEFC
 SD BISON            K6V5
@@ -2664,6 +2603,7 @@ SD CUSTER           K0V1
 SD MOBRIDGE         KY26
 SD PHILIP           KP05
 SD REDIG            KREJ
+CD  STATION         ICAO
 TN BOLIVAR/WHITEHST KM08
 TN BRISTOL          KTRI
 TN CHATTANOOGA      KCHA
@@ -2713,6 +2653,7 @@ TN UNION CITY       KUCY
 TN WINCHESTER       KBGF
 TN MONTEAGLE        KMGL
 TN SELMER           KSZY
+CD  STATION         ICAO
 TX DALLAS/FT WORTH  KDFW
 TX ABILENE          KABI
 TX ALICE            KALI
@@ -2968,6 +2909,7 @@ TX ZAPATA           KT86
 TX E BREAKS 165     KEMK
 TX GUNNISON 668     KGUL
 TX N PADRE 975      KOPM
+CD  STATION         ICAO
 UT SALT LAKE CITY   KSLC
 UT BLANDING         K4BL
 UT BONNEVILLE       KBVL
@@ -3001,6 +2943,7 @@ UT VERNAL           KVEL
 UT WENDOVER (AUT)   KENV
 UT BULLFROG(AWRS)   KU17
 UT JOSEPH           K7LI
+CD  STATION         ICAO
 VA ROANOKE          KROA
 VA ABINGDON         KVJI
 VA BLACKSBURG/VA T. KBCB
@@ -3062,6 +3005,7 @@ VA RICHLANDS        K6V3
 VA VOLENS           KVQN
 VA WARRENTON        KHWY
 VA WILLIAMSBURG     KW94
+CD  STATION         ICAO
 VT BENNINGTON       KDDH
 VT BURLINGTON       KBTV
 VT COLCHESTER/88D   KCXX
@@ -3084,6 +3028,7 @@ VT SOUTH LINCOLN    KSOL
 VT WEST BURKE       KVT2
 VT WEST DOVER       KWDO
 VT WILMINGTON       KMNW
+CD  STATION         ICAO
 WA ARLINGTON MUNI   KAWO
 WA BELLINGHAM       KBLI
 WA WHATCOM (BLI)    KHUH
@@ -3138,6 +3083,7 @@ WA DEER PARK        K07S
 WA OAK HARBOR AIRPA K76S
 WA PORT ANGELES CG  KNOW
 WA PEARSON/VANCOUVR K60S
+CD  STATION         ICAO
 WI ANTIGO/LANGLADE  KAIG
 WI APPLETON/OUTAGAM KATW
 WI ASHWAUBENON      KGRB
@@ -3210,6 +3156,7 @@ WI PARK FALLS       KPKF
 WI RICE LAKE        KRIE
 WI SHAWANO MUNI     K3WO
 WI TOMAHAWK REGNL   KT08
+CD  STATION         ICAO
 WV BECKLEY          KBKW
 WV BLUEFIELD        KBLF
 WV BUCKHANNON       KW22
@@ -3229,6 +3176,7 @@ WV RUTHDALE/CHARLES KRLX
 WV SUTTON/BRAXTON   K48I
 WV WHEELING         KHLG
 WV WHITE SULPHUR SP KSSU
+CD  STATION         ICAO
 WY BIG PINEY        KBPI
 WY BOYSEN (VOR)     KBOY
 WY BOYSEN/THERMOPOL KTBX
@@ -3291,9 +3239,11 @@ WY SHUTE CREEK      KSHC
 WY MAMMOTH/YELLOWST KMMM
 WY TOWER FALLS      KTOW
 WY MEETEETSE RIM    KMTR
+CD  STATION         ICAO
 DC NWS HDQTRS       KWBC
 DC WASHINGTON/NATL  KDCA
 DC WASHINGTON/ARTCC KZDC
+CD  STATION         ICAO
 AB ABEE AGDM        CXAF
 AB ANDREW AGDM      CXAG
 AB ATMORE AGDM      CXAJ
@@ -3399,6 +3349,7 @@ AB RAYMOND AGDM     CPRY
 AB STRATHMORE AGDM  CPST
 AB SEVEN PERSONS    CPSV
 AB BOW ISLAND AGDM  CPXL
+CD  STATION         ICAO
 BC ABBOTSFORD AIRPO CYXX
 BC ADDENBROKE ISL ( CWCZ
 BC AGASSIZ (AUTO)   CWZA
@@ -3530,6 +3481,7 @@ BC W VANCOUVER AUTO CWWA
 BC WHISTLER         CWAE
 BC WHITE ROCK AUTOB CWWK
 BC WILLIAMS LAKE AR CYWL
+CD  STATION         ICAO
 MB ARNES            CWRE
 MB BERENS RIVER APT CYBV
 MB BERENS RIVER APT CWCF
@@ -3570,6 +3522,7 @@ MB WINNIPEG INTL AR CYWG
 MB WINNIPEG         CXWI
 MB WINNIPEG FORKS   CXWN
 MB NORWAY HOUSE ARP CYNE
+CD  STATION         ICAO
 NB BATHURST ARPT(AW CZBF
 NB CHARLO AIRPORT   CZCR
 NB CHIPMAN RADAR    CXNC
@@ -3590,6 +3543,7 @@ NB ST. STEPHEN (MAR CWSS
 NB CHARLO AIRPORT   CYCL
 NB CHATHAM          CYCH
 NB MIRAMICHI (AU8)  CWCQ
+CD  STATION         ICAO
 NL ARGENTIA (MARS)  CWAR
 NL BADGER (MARS)    CWDI
 NL BONAVISTA        CWVA
@@ -3632,6 +3586,7 @@ NL TWILLINGATE (MAP CWDO
 NL WABUSH LAKE AIRP CYWK
 NL WRECKHOUSE       CXWR
 NL ST PIERRE-FRANCE LFVP
+CD  STATION         ICAO
 NS AMHERST (MARS)   CWAH
 NS BEAVER ISLAND(MA CWBV
 NS BRIER ISLAND(AUT CWVU
@@ -3667,6 +3622,7 @@ NS TRENTON MUNICIPA CYTN
 NS TRURO (MARS)     CWUR
 NS WESTERN HEAD (MA CWWE
 NS YARMOUTH AIRPORT CYQI
+CD  STATION         ICAO
 NT AKLAVIK AIRPORT  CYKD
 NT CAPE PARRY AUTO4 CZCP
 NT DEADMAN VALLEY   CXDK
@@ -3716,6 +3672,7 @@ NT WRIGLEY AIRPORT  CYWY
 NT YELLOWKNIFE AIRP CYZF
 NT YOHIN            CXYH
 NT CANADA/ARTCC     CZVE
+CD  STATION         ICAO
 NU ALERT            CWLT
 NU ALERT AIRPORT    CYLT
 NU ALERT            CZLT
@@ -3778,6 +3735,7 @@ NU STEFANSSON IS    CXSE
 NU WAGER BAY        CXWB
 NU WHALE COVE AIRPO CYXN
 NU IQALUIT CLIMATE  CXFB
+CD  STATION         ICAO
 ON ATIKOKAN (AUT)   CWCH
 ON BANCROFT AUTOB   CWRK
 ON BARRIE (MARS)    CWCU
@@ -3901,6 +3859,8 @@ ON MOOSE CREEK      CTCK
 ON CORNWALL         CTCW
 ON ALGONQUIN PARK   CTNK
 ON WINCHESTER       CTWN
+PR NCE EDWARD ISLAN    0
+CD  STATION         ICAO
 PE CHARLOTTETOWN AR CYYG
 PE CONFEDERATION BR CXBP
 PE EAST POINT (MARS CWEP
@@ -3910,6 +3870,7 @@ PE ST PETERS        CZSP
 PE SUMMERSIDE (AUTO CWSD
 PE SUMMERSIDE(CAN M CYSU
 PE HARRINGTON CDA   CAHR
+CD  STATION         ICAO
 QC AMQUI            CWZS
 QC AKULIVIK AIRPORT CYKO
 QC AUPALUK          CYLA
@@ -4050,6 +4011,7 @@ QC ST SABINE        CMSB
 QC ST CELESTIN      CMSC
 QC ST M-D-NAPIERVIL CMSX
 QC ST CHRYSOSTOME   CMYT
+CD  STATION         ICAO
 SK ASSINIBOIA ARPT  CWJI
 SK BROADVIEW        CWIK
 SK BRATTS LAKE      CXBK
@@ -4097,6 +4059,7 @@ SK WYNYARD (AUT)    CWOY
 SK YORKTON AIRPORT  CYQV
 SK WALDRON VOR      CYDR
 SK CANADA ARTCC     CZFD
+CD  STATION         ICAO
 YT BEAVER CREEK ARP CYXQ
 YT BURWASH          CYDB
 YT CARMACKS         CXCK
