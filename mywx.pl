@@ -5,14 +5,18 @@ use Geo::WeatherNWS;
 use Getopt::Std;
 
 
-my ($winddirtext, $nochill, $debug, $station);
+my ($winddirtext, $nochill, $debug, $station, $default);
 $debug = 0;
-our ($opt_d, $opt_s);
-getopts('ds:');
+$default = 'Henderson, KY';
+our ($opt_d, $opt_s, $opt_h);
+getopts('dhs:');
 if ($opt_d) { $debug = 1; }
 if ($opt_s) { $station = $opt_s;}
+if ($opt_h) { usage();}
 
 $nochill = "0";
+$station  = $ARGV[0];
+if (!$station) { print "No station entered, using default location, $default\n"; }
 my $Report = Geo::WeatherNWS::new();
 
 $Report->setservername("tgftp.nws.noaa.gov");
@@ -52,3 +56,9 @@ if ($Report->{cloudcover}) {printf "Cloudcover: %s \n", $Report->{cloudcover}; }
 print "================================================================\n";
 print "Find your code at http://www.aircharterguide.com/Airports \n";
 print "================================================================\n";
+
+sub usage {
+    print "USAGE: mywx [-d] <METAR>\n";
+    print " -d debug\n";
+    print "<METAR> is 4 character metar code\n";
+}
