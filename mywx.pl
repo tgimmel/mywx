@@ -15,7 +15,6 @@ getopts('ldhs:');
 if ($opt_d) { $debug = 1; }
 if ($opt_h) { usage();}
 
-
 while ($line = <DATA>) {
     $st = substr $line, 0, 2;
     $city = substr $line, 3, 16;
