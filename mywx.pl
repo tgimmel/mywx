@@ -31,7 +31,10 @@ if ($opt_l) { liststations(%metr); }
 if ($debug) { print "loaded $c codes.\n"; }
 $nochill = "0";
 $station  = $ARGV[0];
-if (!$station) { print "\nNo station entered, using default location, $default\n"; }
+if (!$station or length($station) != 4) {
+    print "\nStation invalid or No station entered, using default location, $default\n";
+    $station = $defstation;
+  }
 my $Report = Geo::WeatherNWS::new();
 
 $Report->setservername("tgftp.nws.noaa.gov");
@@ -44,7 +47,6 @@ if ($station) {
         exit;
       }
 } else {
-    $station = $defstation;
     $Report->getreport($station);
 }
 
@@ -52,8 +54,6 @@ if ($Report->{error})
   {
     print "$Report->{errortext}";
   }
-#$winddirtext = $Report->{winddirtext};
-#if ($winddirtext eq "Calm") { $nochill = "1"; }
 
 if ($station) { print "\n"; }
 if ($debug) { print "debug: $Report->{obs}\n";
