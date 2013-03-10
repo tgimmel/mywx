@@ -56,12 +56,11 @@ if ($Report->{error})
   }
 
 if ($station) { print "\n"; }
-if ($debug) { print "debug: $Report->{obs}\n";
-              print "debug: Station: $station\n";
-	      print "Hash value: $metr{ (uc($station)) }\n";
+if ($debug) {
+    print "debug: $Report->{obs}\n";
+    print "debug: Station: $station\n";
+    print "Hash value: $metr{ (uc($station)) }\n";
 }
-#my $station_loc = $metr{$station};
-#print $metr{$station};
 
 print "================================================================\n";
 print "            Report for $metr{ uc($station) }\n";
