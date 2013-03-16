@@ -10,10 +10,10 @@ my ($st, $city, $code, $ctyst, %metr, $c, $defstation);
 $debug = 0;
 $default = 'Henderson, KY';
 $defstation = 'kehr';
-our ($opt_d, $opt_h, $opt_l);
+our ($opt_d, $opt_h, $opt_l, $opt_s);
 getopts('ldhs:');
 if ($opt_d) { $debug = 1; }
-if ($opt_h) { usage();}
+if ($opt_h) { usage(); exit; }
 
 while ($line = <DATA>) {               #Data from end of this file.
     $st = substr $line, 0, 2;
@@ -26,6 +26,11 @@ while ($line = <DATA>) {               #Data from end of this file.
     if ($debug) { $c++; }
 }
 if ($opt_l) { liststations(%metr); }
+
+if ( $opt_s) {
+    searchcity(\%metr, \$opt_s);
+    exit;
+}
 
 if ($debug) { print "loaded $c codes.\n"; }
 $nochill = "0";
@@ -75,12 +80,14 @@ if ($Report->{heat_index_f} and ($Report->{temperature_f} > 60)) {
 if ($Report->{cloudcover}) {printf "Cloudcover: %s \n", $Report->{cloudcover}; }
 print "================================================================\n";
 print "Find your code at http://www.aircharterguide.com/Airports \n";
+print "or to get a list:   mywx.pl -s <cityname>\n";
 print "================================================================\n";
 
 sub usage {
     print "USAGE: mywx [-d] <METAR>\n";
     print " -d debug\n";
     print "<METAR> is 4 character metar code\n";
+    print "To find a citycode: mywx -s <cityname>\n";
 }
 
 exit;
@@ -92,8 +99,21 @@ sub liststations {
       $value = $data{$key};
       print "$key $value \n";
     }
- #   }
-    
+}
+
+sub searchcity { 
+    my ($data) = shift;
+    my $s = shift;
+    my $sch = uc($$s);
+    my ($key, $value);
+    foreach $key (sort keys %$data) {
+        $value = ${$data}{$key};
+        if (uc($value) =~ /^$sch/) {
+            print "$key $value\n";
+	} else {
+	    next;
+	}
+    }
 }
 __DATA__
 AK ADAK NAS         PADK
@@ -3696,7 +3716,7 @@ NT LAC LA MARTRE    CWMT
 NT LINDBERG LANDING CXLL
 NT LIVERPOOL BAY    CWLI
 NT LOWER CARP LAKE  CXLC
-NT LUTSEL KE ARPT ( CYLK
+NT LUTSEL KE ARPT   CYLK
 NT LUTSEL KE CS     CXLU
 NT MOULD BAY        CYMD
 NT MOULD BAY CAMP   CWMD
