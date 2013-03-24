@@ -28,7 +28,7 @@ while ($line = <DATA>) {               #Data from end of this file.
 if ($opt_l) { liststations(%metr); }
 
 if ( $opt_s) {
-    searchcity(\%metr, \$opt_s);
+    searchcity($opt_s, %metr);
     exit;
 }
 
@@ -101,13 +101,13 @@ sub liststations {
     }
 }
 
-sub searchcity { 
-    my ($data) = shift;
-    my $s = shift;
-    my $sch = uc($$s);
+sub searchcity {
+    my $s = shift;                     #Shift off the option
+    my (%data) = @_;                   #Now bring in the list that was a hash into a new hash
+    my $sch = uc($s);
     my ($key, $value);
-    foreach $key (sort keys %$data) {
-        $value = ${$data}{$key};
+    foreach $key (sort keys %data) {
+        $value = $data{$key};
         if (uc($value) =~ /^$sch/) {
             print "$key $value\n";
 	} else {
@@ -115,6 +115,8 @@ sub searchcity {
 	}
     }
 }
+#          1         2
+#012345678901234567890123456
 __DATA__
 AK ADAK NAS         PADK
 AK AKHIOK           PAKH
